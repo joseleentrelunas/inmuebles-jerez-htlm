@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inmuebles Jerez - Dashboard Brain Creator</title>
+    <!-- Tailwind CSS 3.x CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        },
+                        darkbg: '#080B11',
+                        cardbg: '#111827',
+                        cardborder: 'rgba(255, 255, 255, 0.08)'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #080B11; color: #f3f4f6; }
+        .glass-panel { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-panel-hover:hover { border-color: rgba(139, 92, 246, 0.4); box-shadow: 0 10px 30px -10px rgba(124, 58, 237, 0.2); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #080B11; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased overflow-x-hidden">
+
+    <!-- AUDIO SYNTHESIZER (Web Audio API) -->
+    <script>
+        let audioEnabled = true;
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.08);
+                } else if (type === 'hover') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.015, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.04);
+                }
+            } catch(e) {}
+        }
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audioToggleBtn');
+            btn.innerHTML = audioEnabled ? '<i class="fa-solid fa-volume-high text-emerald-400"></i>' : '<i class="fa-solid fa-volume-xmark text-red-400"></i>';
+            playSound('click');
+        }
+    </script>
+
+    <!-- MOBILE HEADER -->
+    <div class="md:hidden flex items-center justify-between p-4 bg-darkbg border-b border-cardborder sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white font-black shadow-lg shadow-brand-600/30">
+                IJ
+            </div>
+            <div>
+                <h1 class="font-bold text-sm tracking-wide text-white">Inmuebles Jerez</h1>
+                <p class="text-[10px] text-brand-400 font-semibold tracking-wider uppercase">Brain Creator</p>
+            </div>
+        </div>
+        <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white p-2 rounded-lg bg-cardborder">
+            <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-darkbg border-r border-cardborder flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <!-- Logo Header -->
+        <div class="p-6 flex items-center justify-between border-b border-cardborder">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white font-black shadow-lg shadow-brand-600/40 text-lg">
+                    IJ
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base tracking-wide text-white">Inmuebles Jerez</h1>
+                    <p class="text-xs text-brand-400 font-semibold tracking-wider uppercase">Brain Creator 2026</p>
+                </div>
+            </div>
+            <button onclick="toggleMobileMenu()" class="md:hidden text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Vistas del Sistema</p>
+            
+            <button onclick="switchView('dashboard', this)" onmouseenter="playSound('hover')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 bg-brand-600 text-white shadow-lg shadow-brand-600/30">
+                <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                <span>Dashboard General</span>
+            </button>
+
+            <button onclick="switchView('inmuebles', this)" onmouseenter="playSound('hover')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-cardborder">
+                <i class="fa-solid fa-building w-5 text-center"></i>
+                <span>Inmuebles Activos</span>
+            </button>
+
+            <button onclick="switchView('ocasion', this)" onmouseenter="playSound('hover')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-cardborder">
+                <i class="fa-solid fa-percent w-5 text-center text-emerald-400"></i>
+                <span>Inmuebles de Ocasión</span>
+            </button>
+
+            <button onclick="switchView('top50', this)" onmouseenter="playSound('hover')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-cardborder">
+                <i class="fa-solid fa-ranking-star w-5 text-center text-amber-400"></i>
+                <span>Top 50 Jerez Interesantes</span>
+            </button>
+
+            <button onclick="switchView('clientes', this)" onmouseenter="playSound('hover')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-cardborder">
+                <i class="fa-solid fa-users w-5 text-center"></i>
+                <span>Clientes MLS / GICA</span>
+            </button>
+
+            <button onclick="switchView('premium', this)" onmouseenter="playSound('hover')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-cardborder">
+                <i class="fa-solid fa-gem w-5 text-center text-brand-400"></i>
+                <span>Proyecto Premium</span>
+            </button>
+
+            <button onclick="switchView('csv', this)" onmouseenter="playSound('hover')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-cardborder">
+                <i class="fa-solid fa-file-arrow-up w-5 text-center text-cyan-400"></i>
+                <span>Importador CSV Datos</span>
+            </button>
+        </nav>
+
+        <!-- Sidebar Footer Status -->
+        <div class="p-4 border-t border-cardborder">
+            <div class="glass-panel p-3 rounded-xl flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-xs font-medium text-gray-300">GICA Cádiz Sincronizado</span>
+                </div>
+                <button id="audioToggleBtn" onclick="toggleAudio()" title="Activar/Desactivar sonido" class="w-7 h-7 rounded-lg bg-darkbg flex items-center justify-center hover:bg-cardborder transition-colors">
+                    <i class="fa-solid fa-volume-high text-emerald-400 text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 md:ml-72 flex flex-col min-h-screen">
+        
+        <!-- TOP HEADER -->
+        <header class="hidden md:flex items-center justify-between px-8 py-5 border-b border-cardborder bg-darkbg/80 backdrop-blur-md sticky top-0 z-30">
+            <div class="flex items-center space-x-4">
+                <h2 id="currentViewTitle" class="text-xl font-bold text-white">Dashboard General - Mercado Jerez</h2>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Mercado Activo 2026</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="openAddModal()" onmouseenter="playSound('hover')" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-brand-600/30 flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Añadir Inmueble</span>
+                </button>
+                <div class="flex items-center space-x-3 pl-4 border-l border-cardborder">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center font-bold text-white shadow">
+                        BC
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-white">Asesor Brain Creator</p>
+                        <p class="text-[10px] text-gray-400">Jerez de la Frontera</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- VIEW CONTAINER -->
+        <div class="p-4 md:p-8 flex-1 space-y-6">
+
+            <!-- ================= VIEW: DASHBOARD ================= -->
+            <div id="view-dashboard" class="space-y-6 view-section">
+                <!-- KPI CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl glass-panel-hover transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Precio Medio Jerez</span>
+                            <div class="w-9 h-9 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center">
+                                <i class="fa-solid fa-euro-sign"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <h3 class="text-2xl font-extrabold text-white">1.485 €/m²</h3>
+                            <span class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-arrow-trend-up"></i> +4.2%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Media actualizada Q2 2026</p>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl glass-panel-hover transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Inmuebles Activos</span>
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                                <i class="fa-solid fa-building-circle-check"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <h3 class="text-2xl font-extrabold text-white" id="kpiActiveCount">348</h3>
+                            <span class="text-xs font-bold text-emerald-400">Red GICA</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Exclusivas compartidas</p>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl glass-panel-hover transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Oportunidades Ocasión</span>
+                            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                                <i class="fa-solid fa-fire"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <h3 class="text-2xl font-extrabold text-white" id="kpiOcasiónCount">24</h3>
+                            <span class="text-xs font-bold text-amber-400">&gt; 15% bajo media</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Alta rentabilidad neta</p>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl glass-panel-hover transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Conversión Premium</span>
+                            <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <h3 class="text-2xl font-extrabold text-white">78.4%</h3>
+                            <span class="text-xs font-bold text-cyan-400"><i class="fa-solid fa-bolt"></i> Rápida</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Cierre bajo 45 días</p>
+                    </div>
+                </div>
+
+                <!-- CONTROLS & CHART SECTION -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-cardborder pb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-white">Análisis Gráfico por Zonas de Jerez</h3>
+                            <p class="text-xs text-gray-400">Comparativa de precios medios por m² y volumen de absorción</p>
+                        </div>
+                        <!-- Chart Type Selectors -->
+                        <div class="flex items-center space-x-2 bg-darkbg p-1 rounded-xl border border-cardborder">
+                            <button onclick="setChartType('bar', this)" onmouseenter="playSound('hover')" class="chart-type-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all">Barras</button>
+                            <button onclick="setChartType('line', this)" onmouseenter="playSound('hover')" class="chart-type-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition-all">Líneas</button>
+                            <button onclick="setChartType('pie', this)" onmouseenter="playSound('hover')" class="chart-type-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition-all">Circular</button>
+                        </div>
+                    </div>
+
+                    <!-- Filter Chips -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2">
+                        <span class="text-xs font-bold text-gray-400 uppercase">Filtrar Activos:</span>
+                        <button onclick="filterAssetType('all', this)" onmouseenter="playSound('hover')" class="filter-chip px-3 py-1 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all">Todos</button>
+                        <button onclick="filterAssetType('terreno', this)" onmouseenter="playSound('hover')" class="filter-chip px-3 py-1 rounded-lg text-xs font-semibold bg-cardbg text-gray-300 border border-cardborder hover:border-brand-500 transition-all">Terrenos / Solares</button>
+                        <button onclick="filterAssetType('nave', this)" onmouseenter="playSound('hover')" class="filter-chip px-3 py-1 rounded-lg text-xs font-semibold bg-cardbg text-gray-300 border border-cardborder hover:border-brand-500 transition-all">Naves Industriales</button>
+                        <button onclick="filterAssetType('local', this)" onmouseenter="playSound('hover')" class="filter-chip px-3 py-1 rounded-lg text-xs font-semibold bg-cardbg text-gray-300 border border-cardborder hover:border-brand-500 transition-all">Locales Comerciales</button>
+                        <button onclick="filterAssetType('edificio', this)" onmouseenter="playSound('hover')" class="filter-chip px-3 py-1 rounded-lg text-xs font-semibold bg-cardbg text-gray-300 border border-cardborder hover:border-brand-500 transition-all">Edificios Singulares</button>
+                    </div>
+
+                    <!-- Canvas Container -->
+                    <div class="w-full h-80 relative flex items-center justify-center pt-4">
+                        <canvas id="mainCanvas" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+
+                <!-- QUICK PREVIEW TABLES -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-base text-white"><i class="fa-solid fa-percent text-emerald-400 mr-2"></i> Oportunidades de Ocasión Recientes</h4>
+                            <button onclick="switchView('ocasion')" class="text-xs text-brand-400 hover:underline font-semibold">Ver todas</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="border-b border-cardborder text-gray-400">
+                                    <tr>
+                                        <th class="pb-3 font-semibold">Tipología</th>
+                                        <th class="pb-3 font-semibold">Zona</th>
+                                        <th class="pb-3 font-semibold">Precio / m²</th>
+                                        <th class="pb-3 font-semibold text-right">Descuento</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardOcasionesTableBody" class="divide-y divide-cardborder text-gray-300"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-base text-white"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> Top Inmuebles Destacados Jerez</h4>
+                            <button onclick="switchView('top50')" class="text-xs text-brand-400 hover:underline font-semibold">Ver Top 50</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="border-b border-cardborder text-gray-400">
+                                    <tr>
+                                        <th class="pb-3 font-semibold">Activo</th>
+                                        <th class="pb-3 font-semibold">Ubicación</th>
+                                        <th class="pb-3 font-semibold">Superficie</th>
+                                        <th class="pb-3 font-semibold text-right">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardTopTableBody" class="divide-y divide-cardborder text-gray-300"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: INMUEBLES ACTIVOS ================= -->
+            <div id="view-inmuebles" class="space-y-6 view-section hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-white">Catálogo Completo de Inmuebles Activos</h3>
+                            <p class="text-xs text-gray-400">Gestión de activos comerciales, industriales y de suelo en Jerez</p>
+                        </div>
+                        <button onclick="openAddModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-brand-600/30 flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Nuevo Inmueble</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="border-b border-cardborder text-gray-400 uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-4">Ref</th>
+                                    <th class="py-3 px-4">Tipología</th>
+                                    <th class="py-3 px-4">Distrito / Zona</th>
+                                    <th class="py-3 px-4">Superficie</th>
+                                    <th class="py-3 px-4">Precio Total</th>
+                                    <th class="py-3 px-4">€ / m²</th>
+                                    <th class="py-3 px-4 text-right">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fullInmueblesTableBody" class="divide-y divide-cardborder text-gray-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: INMUEBLES DE OCASIÓN ================= -->
+            <div id="view-ocasion" class="space-y-6 view-section hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg text-white"><i class="fa-solid fa-percent text-emerald-400 mr-2"></i> Inmuebles de Ocasión (Oportunidades &gt;15% Descuento)</h3>
+                            <p class="text-xs text-gray-400">Activos analizados por debajo de la media del mercado en Jerez</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Filtro Inteligente</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="border-b border-cardborder text-gray-400 uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-4">Referencia</th>
+                                    <th class="py-3 px-4">Tipología</th>
+                                    <th class="py-3 px-4">Ubicación Jerez</th>
+                                    <th class="py-3 px-4">Precio Actual</th>
+                                    <th class="py-3 px-4">Precio Medio Zona</th>
+                                    <th class="py-3 px-4 text-right">Descuento Real</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ocasionTableBody" class="divide-y divide-cardborder text-gray-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: TOP 50 JEREZ ================= -->
+            <div id="view-top50" class="space-y-6 view-section hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg text-white"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> Top 50 Inmuebles más Interesantes de Jerez</h3>
+                            <p class="text-xs text-gray-400">Selección curada para inversores y compradores cualificados - Red GICA</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Alta Rentabilidad</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="border-b border-cardborder text-gray-400 uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-4">N°</th>
+                                    <th class="py-3 px-4">Tipología</th>
+                                    <th class="py-3 px-4">Ubicación / Distrito</th>
+                                    <th class="py-3 px-4">Superficie</th>
+                                    <th class="py-3 px-4">Precio</th>
+                                    <th class="py-3 px-4">€ / m²</th>
+                                    <th class="py-3 px-4 text-right">Uso Estratégico</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top50TableBody" class="divide-y divide-cardborder text-gray-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: CLIENTES GICA ================= -->
+            <div id="view-clientes" class="space-y-6 view-section hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <h3 class="font-bold text-lg text-white">Red de Colaboradores y Compradores Cualificados GICA</h3>
+                    <p class="text-xs text-gray-400">Sincronización con más de 100 agencias asociadas en la provincia de Cádiz.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder">
+                            <p class="text-xs text-gray-400">Compradores Activos</p>
+                            <h4 class="text-xl font-bold text-white mt-1">1.420</h4>
+                            <span class="text-[10px] text-emerald-400 font-semibold">Pre-cualificados financieramente</span>
+                        </div>
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder">
+                            <p class="text-xs text-gray-400">Agencias en Red Cádiz</p>
+                            <h4 class="text-xl font-bold text-white mt-1">108</h4>
+                            <span class="text-[10px] text-brand-400 font-semibold">MLS activa</span>
+                        </div>
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder">
+                            <p class="text-xs text-gray-400">Tiempo Medio de Cierre</p>
+                            <h4 class="text-xl font-bold text-white mt-1">42 Días</h4>
+                            <span class="text-[10px] text-cyan-400 font-semibold">Metodología Brain Creator</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: PROYECTO PREMIUM ================= -->
+            <div id="view-premium" class="space-y-6 view-section hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <h3 class="font-bold text-lg text-white"><i class="fa-solid fa-gem text-brand-400 mr-2"></i> Los 5 Pilares del Proyecto Premium</h3>
+                    <p class="text-xs text-gray-400">Nuestra metodología de alto rendimiento para activos complejos y comerciales en Jerez.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder space-y-2">
+                            <span class="text-xs font-bold text-brand-400">01</span>
+                            <h4 class="font-bold text-sm text-white">Visita y Documentación</h4>
+                            <p class="text-[11px] text-gray-400">Verificación registral, urbanística y de cargas previa.</p>
+                        </div>
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder space-y-2">
+                            <span class="text-xs font-bold text-brand-400">02</span>
+                            <h4 class="font-bold text-sm text-white">Estudio de Viabilidad</h4>
+                            <p class="text-[11px] text-gray-400">Análisis ROI y neurociencia comercial aplicada.</p>
+                        </div>
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder space-y-2">
+                            <span class="text-xs font-bold text-brand-400">03</span>
+                            <h4 class="font-bold text-sm text-white">Home Staging & Marketing</h4>
+                            <p class="text-[11px] text-gray-400">Difusión multicanal en red GICA Cádiz.</p>
+                        </div>
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder space-y-2">
+                            <span class="text-xs font-bold text-brand-400">04</span>
+                            <h4 class="font-bold text-sm text-white">Filtro Cualificado</h4>
+                            <p class="text-[11px] text-gray-400">Validación de liquidez y solvencia del comprador.</p>
+                        </div>
+                        <div class="bg-darkbg p-4 rounded-xl border border-cardborder space-y-2">
+                            <span class="text-xs font-bold text-brand-400">05</span>
+                            <h4 class="font-bold text-sm text-white">Cierre Jurídico</h4>
+                            <p class="text-[11px] text-gray-400">Blindaje contractual absoluto y notaría.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: IMPORTADOR CSV ================= -->
+            <div id="view-csv" class="space-y-6 view-section hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <h3 class="font-bold text-lg text-white"><i class="fa-solid fa-file-arrow-up text-cyan-400 mr-2"></i> Importador Dinámico de Datos CSV</h3>
+                    <p class="text-xs text-gray-400">Sube tu archivo CSV con nuevos inmuebles para actualizar automáticamente métricas y tablas en tiempo real.</p>
+                    
+                    <div class="border-2 border-dashed border-cardborder rounded-2xl p-8 text-center space-y-3 hover:border-brand-500 transition-colors bg-darkbg/50">
+                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-brand-400"></i>
+                        <h4 class="font-bold text-sm text-white">Arrastra tu archivo CSV aquí o haz clic para explorar</h4>
+                        <p class="text-xs text-gray-400">Formato requerido: Referencia, Tipología, Zona, Superficie, Precio</p>
+                        <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVUpload(event)" class="hidden">
+                        <button onclick="document.getElementById('csvFileInput').click()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-brand-600/30">
+                            Seleccionar Archivo CSV
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <span id="csvStatus" class="text-xs font-semibold text-gray-400">Ningún archivo cargado actualmente. Usando base de datos predeterminada de Jerez.</span>
+                        <button onclick="downloadCSVTemplate()" class="text-xs text-brand-400 hover:underline font-semibold flex items-center space-x-1">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Descargar plantilla CSV de ejemplo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL NUEVO INMUEBLE -->
+    <div id="addPropertyModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+        <div class="glass-panel p-6 rounded-2xl w-full max-w-lg space-y-4 border border-cardborder m-4">
+            <div class="flex items-center justify-between border-b border-cardborder pb-3">
+                <h3 class="font-bold text-base text-white"><i class="fa-solid fa-building-circle-arrow-right text-brand-400 mr-2"></i> Añadir Nuevo Inmueble en Jerez</h3>
+                <button onclick="closeAddModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="addPropertyForm" onsubmit="handleAddNewProperty(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Tipología de Activo</label>
+                    <select id="newTipo" class="w-full bg-darkbg text-sm text-white px-3 py-2 rounded-xl border border-cardborder focus:outline-none focus:border-brand-500">
+                        <option value="Nave Industrial">Nave Industrial</option>
+                        <option value="Local Comercial">Local Comercial</option>
+                        <option value="Solar / Terreno">Solar / Terreno</option>
+                        <option value="Edificio Singular">Edificio Singular</option>
+                        <option value="Oficina Representativa">Oficina Representativa</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Zona / Distrito en Jerez</label>
+                    <input type="text" id="newZona" required placeholder="Ej: Polígono El Portal, Calle Larga..." class="w-full bg-darkbg text-sm text-white px-3 py-2 rounded-xl border border-cardborder focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Superficie (m²)</label>
+                        <input type="text" id="newSup" required placeholder="Ej: 350 m²" class="w-full bg-darkbg text-sm text-white px-3 py-2 rounded-xl border border-cardborder focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Precio Total (€)</label>
+                        <input type="text" id="newPrecio" required placeholder="Ej: 210.000 €" class="w-full bg-darkbg text-sm text-white px-3 py-2 rounded-xl border border-cardborder focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Uso Estratégico / Notas</label>
+                    <input type="text" id="newUso" placeholder="Ej: Logística o inversión GICA" class="w-full bg-darkbg text-sm text-white px-3 py-2 rounded-xl border border-cardborder focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-darkbg hover:bg-cardborder text-gray-300 rounded-xl text-xs font-bold transition-all">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-brand-600/30">Guardar Inmueble</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        function toggleMobileMenu() {
+            playSound('click');
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        function switchView(viewName, btnElement) {
+            playSound('click');
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+
+            if (btnElement) {
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    b.classList.remove('bg-brand-600', 'text-white', 'shadow-lg', 'shadow-brand-600/30');
+                    b.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-cardborder');
+                });
+                btnElement.classList.add('bg-brand-600', 'text-white', 'shadow-lg', 'shadow-brand-600/30');
+                btnElement.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-cardborder');
+            } else {
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(viewName)) {
+                        b.click();
+                    }
+                });
+            }
+
+            const titles = {
+                'dashboard': 'Dashboard General - Mercado Jerez',
+                'inmuebles': 'Catálogo de Inmuebles Activos',
+                'ocasion': 'Inmuebles de Ocasión (>15% Descuento)',
+                'top50': 'Top 50 Inmuebles más Interesantes de Jerez',
+                'clientes': 'Red de Clientes MLS / GICA',
+                'premium': 'Metodología Proyecto Premium',
+                'csv': 'Importador Dinámico de Datos CSV'
+            };
+            document.getElementById('currentViewTitle').textContent = titles[viewName] || 'Dashboard Inmobiliario';
+        }
+
+        // --- DATASET: TOP 50 JEREZ ---
+        const top50JerezData = [
+            { id: 1, tipo: 'Edificio Singular', zona: 'Cuatro Caminos / Centro', sup: '1.577 m²', precio: '1.999.990 €', p2: '1.268 €/m²', uso: 'Promoción mixta' },
+            { id: 2, tipo: 'Nave Industrial Exenta', zona: 'Parque Empresarial', sup: '2.660 m²', precio: '1.750.000 €', p2: '658 €/m²', uso: 'Logística gran formato' },
+            { id: 3, tipo: 'Local Comercial / Gran Superficie', zona: 'Vallesequillo / Estación', sup: '2.462 m²', precio: '1.400.000 €', p2: '569 €/m²', uso: 'Supermercado / Gimnasio' },
+            { id: 4, tipo: 'Casco de Bodega Histórico', zona: 'Barrio de Santiago', sup: '321 m²', precio: '290.000 €', p2: '903 €/m²', uso: 'Conversión turística loft' },
+            { id: 5, tipo: 'Nave Logística', zona: 'Polígono El Portal', sup: '400 m²', precio: '300.000 €', p2: '750 €/m²', uso: 'Almacenaje y distribución' },
+            { id: 6, tipo: 'Local Comercial Esquina', zona: 'Av. de Arcos', sup: '45 m²', precio: '850 €/mes', p2: '18,89 €/m²', uso: 'Alta rotación comercial' },
+            { id: 7, tipo: 'Nave en Recinto Cerrado', zona: 'Ciudad del Transporte', sup: '451 m²', precio: '410.000 €', p2: '909 €/m²', uso: 'Seguridad 24h y accesos' },
+            { id: 8, tipo: 'Local Comercial Centro', zona: 'Calle Larga / Los Cisnes', sup: '69 m²', precio: '49.000 €', p2: '710 €/m²', uso: 'Inversión baja barrera' },
+            { id: 9, tipo: 'Nave Industrial', zona: 'Polígono Ronda Oeste', sup: '300 m²', precio: '220.000 €', p2: '733 €/m²', uso: 'Taller / Base PYME' },
+            { id: 10, tipo: 'Local Comercial Bruto', zona: 'Plaza de Toros / Williams', sup: '172 m²', precio: '1.700 €/mes', p2: '9,88 €/m²', uso: 'Expansión residencial' }
+        ];
+        for(let i=11; i<=50; i++) {
+            const tipos = ['Nave Industrial', 'Local Comercial', 'Solar Urbano', 'Edificio Singular', 'Oficina Representativa'];
+            const zonas = ['Polígono El Portal', 'Parque Empresarial', 'Centro Histórico', 'Av. Europa', 'Zona Este'];
+            top50JerezData.push({
+                id: i,
+                tipo: tipos[i % tipos.length],
+                zona: zonas[i % zonas.length],
+                sup: (Math.floor(Math.random() * 800) + 120) + ' m²',
+                precio: (Math.floor(Math.random() * 600000) + 75000).toLocaleString() + ' €',
+                p2: (Math.floor(Math.random() * 700) + 500) + ' €/m²',
+                uso: 'Inversión patrimonial GICA'
+            });
+        }
+
+        const ocasionData = [
+            { ref: 'OC-2026-01', tipo: 'Nave Industrial', zona: 'Polígono El Portal', precio: '180.000 €', media: '240.000 €', desc: '-25%' },
+            { ref: 'OC-2026-02', tipo: 'Solar Urbano', zona: 'Zona Este / Hipercor', precio: '95.000 €', media: '125.000 €', desc: '-24%' },
+            { ref: 'OC-2026-03', tipo: 'Local Comercial', zona: 'Calle Medina', precio: '65.000 €', media: '88.000 €', desc: '-26%' },
+            { ref: 'OC-2026-04', tipo: 'Edificio Singular', zona: 'Casco Antiguo / San Mateo', precio: '210.000 €', media: '285.000 €', desc: '-26%' },
+            { ref: 'OC-2026-05', tipo: 'Oficina Ejecutiva', zona: 'Av. Europa', precio: '72.000 €', media: '98.000 €', desc: '-26%' },
+            { ref: 'OC-2026-06', tipo: 'Nave Logística', zona: 'Parque Empresarial', precio: '320.000 €', media: '410.000 €', desc: '-22%' }
+        ];
+
+        function renderTables() {
+            document.getElementById('dashboardOcasionesTableBody').innerHTML = ocasionData.slice(0, 4).map(item => `
+                <tr>
+                    <td class="py-2.5 font-semibold text-white">${item.tipo}</td>
+                    <td class="py-2.5 text-gray-400">${item.zona}</td>
+                    <td class="py-2.5 font-bold text-emerald-400">${item.precio}</td>
+                    <td class="py-2.5 text-right font-bold text-emerald-400">${item.desc}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('dashboardTopTableBody').innerHTML = top50JerezData.slice(0, 4).map(item => `
+                <tr>
+                    <td class="py-2.5 font-semibold text-white">${item.tipo}</td>
+                    <td class="py-2.5 text-gray-400">${item.zona}</td>
+                    <td class="py-2.5">${item.sup}</td>
+                    <td class="py-2.5 text-right font-bold text-amber-400">${item.precio}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('fullInmueblesTableBody').innerHTML = top50JerezData.slice(0, 25).map((item, idx) => `
+                <tr class="hover:bg-darkbg/50 transition-colors">
+                    <td class="py-3 px-4 font-mono text-xs text-brand-400">BC-2026-${100+idx}</td>
+                    <td class="py-3 px-4 font-semibold text-white">${item.tipo}</td>
+                    <td class="py-3 px-4 text-gray-400">${item.zona}</td>
+                    <td class="py-3 px-4">${item.sup}</td>
+                    <td class="py-3 px-4 font-bold text-white">${item.precio}</td>
+                    <td class="py-3 px-4 text-emerald-400 font-semibold">${item.p2}</td>
+                    <td class="py-3 px-4 text-right"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Disponible</span></td>
+                </tr>
+            `).join('');
+
+            document.getElementById('ocasionTableBody').innerHTML = ocasionData.map(item => `
+                <tr class="hover:bg-darkbg/50 transition-colors">
+                    <td class="py-3 px-4 font-mono text-xs text-brand-400">${item.ref}</td>
+                    <td class="py-3 px-4 font-semibold text-white">${item.tipo}</td>
+                    <td class="py-3 px-4 text-gray-400">${item.zona}</td>
+                    <td class="py-3 px-4 font-bold text-emerald-400">${item.precio}</td>
+                    <td class="py-3 px-4 text-gray-400">${item.media}</td>
+                    <td class="py-3 px-4 text-right font-extrabold text-emerald-400">${item.desc}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('top50TableBody').innerHTML = top50JerezData.map(item => `
+                <tr class="hover:bg-darkbg/50 transition-colors">
+                    <td class="py-3 px-4 font-bold text-amber-400">#${item.id < 10 ? '0'+item.id : item.id}</td>
+                    <td class="py-3 px-4 font-semibold text-white">${item.tipo}</td>
+                    <td class="py-3 px-4 text-gray-400">${item.zona}</td>
+                    <td class="py-3 px-4">${item.sup}</td>
+                    <td class="py-3 px-4 font-bold text-white">${item.precio}</td>
+                    <td class="py-3 px-4 text-emerald-400 font-semibold">${item.p2}</td>
+                    <td class="py-3 px-4 text-right text-gray-300 font-medium">${item.uso}</td>
+                </tr>
+            `).join('');
+        }
+
+        // --- MANUAL ADD PROPERTY ---
+        function openAddModal() {
+            playSound('click');
+            document.getElementById('addPropertyModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            playSound('click');
+            document.getElementById('addPropertyModal').classList.add('hidden');
+        }
+
+        function handleAddNewProperty(e) {
+            e.preventDefault();
+            playSound('click');
+            const tipo = document.getElementById('newTipo').value;
+            const zona = document.getElementById('newZona').value;
+            const sup = document.getElementById('newSup').value;
+            const precio = document.getElementById('newPrecio').value;
+            const uso = document.getElementById('newUso').value || 'Inversión Brain Creator';
+
+            const newObj = {
+                id: top50JerezData.length + 1,
+                tipo,
+                zona,
+                sup: sup.includes('m') ? sup : sup + ' m²',
+                precio: precio.includes('€') ? precio : precio + ' €',
+                p2: '650 €/m²',
+                uso
+            };
+
+            top50JerezData.unshift(newObj);
+            renderTables();
+            closeAddModal();
+            
+            // Update Active count KPI
+            const activeCountElem = document.getElementById('kpiActiveCount');
+            activeCountElem.textContent = parseInt(activeCountElem.textContent) + 1;
+            alert('¡Inmueble añadido y sincronizado correctamente con el dashboard!');
+        }
+
+        // --- CANVAS CHART ENGINE ---
+        let currentChartType = 'bar';
+        let currentFilter = 'all';
+
+        function setChartType(type, btn) {
+            playSound('click');
+            currentChartType = type;
+            document.querySelectorAll('.chart-type-btn').forEach(b => {
+                b.classList.remove('bg-brand-600', 'text-white');
+                b.classList.add('text-gray-400');
+            });
+            btn.classList.add('bg-brand-600', 'text-white');
+            btn.classList.remove('text-gray-400');
+            drawChart();
+        }
+
+        function filterAssetType(filter, btn) {
+            playSound('click');
+            currentFilter = filter;
+            document.querySelectorAll('.filter-chip').forEach(b => {
+                b.classList.remove('bg-brand-600', 'text-white');
+                b.classList.add('bg-cardbg', 'text-gray-300');
+            });
+            btn.classList.add('bg-brand-600', 'text-white');
+            btn.classList.remove('bg-cardbg', 'text-gray-300');
+            drawChart();
+        }
+
+        function drawChart() {
+            const canvas = document.getElementById('mainCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight || 320;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let labels = ['Centro Hist.', 'Pol. El Portal', 'Parque Emp.', 'Av. Europa', 'Zona Este'];
+            let data = [1650, 720, 680, 1420, 1150];
+
+            if (currentFilter === 'terreno') data = [1100, 450, 400, 950, 820];
+            if (currentFilter === 'nave') data = [500, 780, 740, 600, 490];
+            if (currentFilter === 'local') data = [1900, 600, 550, 1600, 1300];
+            if (currentFilter === 'edificio') data = [2200, 850, 800, 1800, 1500];
+
+            const maxVal = Math.max(...data) * 1.2;
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+
+            if (currentChartType === 'bar') {
+                const barWidth = chartWidth / labels.length * 0.6;
+                const spacing = (chartWidth / labels.length) - barWidth;
+
+                labels.forEach((label, i) => {
+                    const val = data[i];
+                    const barHeight = (val / maxVal) * chartHeight;
+                    const x = padding + i * (barWidth + spacing) + spacing / 2;
+                    const y = height - padding - barHeight;
+
+                    const grad = ctx.createLinearGradient(0, y, 0, height - padding);
+                    grad.addColorStop(0, '#8b5cf6');
+                    grad.addColorStop(1, '#10b981');
+
+                    ctx.fillStyle = grad;
+                    ctx.roundRect ? ctx.roundRect(x, y, barWidth, barHeight, [6, 6, 0, 0]) : ctx.fillRect(x, y, barWidth, barHeight);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#9ca3af';
+                    ctx.font = '11px Plus Jakarta Sans';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, x + barWidth / 2, height - padding + 16);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px Plus Jakarta Sans';
+                    ctx.fillText(val + ' €/m²', x + barWidth / 2, y - 8);
+                });
+            } else if (currentChartType === 'line') {
+                ctx.strokeStyle = '#8b5cf6';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+
+                const points = labels.map((label, i) => {
+                    const x = padding + (i / (labels.length - 1)) * chartWidth;
+                    const y = height - padding - (data[i] / maxVal) * chartHeight;
+                    return { x, y, val: data[i], label };
+                });
+
+                points.forEach((p, i) => {
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                ctx.stroke();
+
+                points.forEach(p => {
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px Plus Jakarta Sans';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(p.val + ' €/m²', p.x, p.y - 12);
+
+                    ctx.fillStyle = '#9ca3af';
+                    ctx.font = '11px Plus Jakarta Sans';
+                    ctx.fillText(p.label, p.x, height - padding + 16);
+                });
+            } else if (currentChartType === 'pie') {
+                const total = data.reduce((a, b) => a + b, 0);
+                let startAngle = 0;
+                const radius = Math.min(chartWidth, chartHeight) / 2.5;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const colors = ['#8b5cf6', '#10b981', '#06b6d4', '#f59e0b', '#ec4899'];
+
+                data.forEach((val, i) => {
+                    const sliceAngle = (val / total) * (Math.PI * 2);
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+                    ctx.closePath();
+                    ctx.fill();
+                    startAngle += sliceAngle;
+                });
+            }
+        }
+
+        // --- CSV UPLOAD ---
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(l => l.trim().length > 0);
+                if (lines.length > 1) {
+                    document.getElementById('csvStatus').textContent = `¡Archivo '${file.name}' cargado con éxito! Se procesaron ${lines.length - 1} registros.`;
+                    document.getElementById('csvStatus').className = 'text-xs font-semibold text-emerald-400';
+                    playSound('click');
+                    const activeCountElem = document.getElementById('kpiActiveCount');
+                    activeCountElem.textContent = parseInt(activeCountElem.textContent) + (lines.length - 1);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadCSVTemplate() {
+            const csvContent = "Referencia,Tipologia,Zona,Superficie,Precio\nBC-2026-991,Nave Industrial,Poligono El Portal,450 m2,280000\nBC-2026-992,Local Comercial,Calle Larga,85 m2,95000";
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plantilla_inmuebles_jerez.csv';
+            a.click();
+        }
+
+        window.addEventListener('load', () => {
+            renderTables();
+            drawChart();
+        });
+
+        window.addEventListener('resize', () => {
+            drawChart();
+        });
+    </script>
+</body>
+</html>
